@@ -2,6 +2,7 @@ from dotenv import find_dotenv, load_dotenv
 from transformers import pipeline
 from langchain.prompts import PromptTemplate
 #from langchain.schema import Runnable
+from langchain_openai import ChatOpenAI
 from langchain_community.chat_models import ChatOpenAI 
 import openai
 from openai import OpenAI
@@ -86,7 +87,7 @@ def story_generator(scenario):
     
     # Now we call the model using the predict method and pass the scenario
 
-    story = story_llm.predict(prompt.format(scenario=scenario))
+    story = story_llm.invoke(prompt.format(scenario=scenario))
 
     # This returns a story based on the context, stored in the story variable
     # In the end, we return the story to pass it to the last model. 
