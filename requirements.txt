@@ -1,0 +1,6 @@
+python-dotenv
+transformers
+langchain
+langchain_openai
+langchain_community
+streamlit

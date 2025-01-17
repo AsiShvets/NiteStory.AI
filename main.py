@@ -10,6 +10,7 @@ from openai import OpenAI
 import requests
 import os
 import streamlit as st
+from langchain.schema import AIMessage
 
 # Load environment variables from .env file
 load_dotenv(find_dotenv()) 
@@ -98,6 +99,10 @@ def story_generator(scenario):
 #we define a function text2speech whose job is to take in the msg 
 #(the story generated from the previous model) and return the audio file.
 def text2speech(msg):
+    if isinstance(msg, AIMessage):
+        msg_content = msg.content
+    else:
+        msg_content = str(msg)
     # API_URL, which holds the api end-point to call.
     API_URL = "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_vits"
    
@@ -107,7 +112,7 @@ def text2speech(msg):
     
     # we define a payload dictionary (JSON format) that contains the message (msg) we need to convert
     payloads = {
-         "inputs" : msg
+         "inputs" : msg_content
     }
    
     #posts request to model is sent along with header and JSON data. The returned response is stored in the response variable.
