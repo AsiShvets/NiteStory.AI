@@ -152,7 +152,7 @@ def main():
         # save image
         with open (upload_file.name, 'wb') as f:
             f.write(binary_data)
-        st.image(upload_file, caption = "Image Uploaded", use_column_width = True) # display image
+        st.image(upload_file, caption = "Image Uploaded", use_container_width = True) # display image
 
         scenario = img2text(upload_file.name) #text2image
         story = story_generator(scenario) # create a story
