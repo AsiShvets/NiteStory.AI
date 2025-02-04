@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import { Card, CardContent } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "./components/ui/select";
@@ -10,51 +9,91 @@ export default function App() {
   const [scenario, setScenario] = useState("");
   const [story, setStory] = useState("");
   const [audioUrl, setAudioUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
+
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setUploadedImage(reader.result);
-      reader.readAsDataURL(file);
+      setUploadedImage(file);
     }
   };
+  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+  console.log("API_BASE_URL:", process.env.REACT_APP_API_URL);
+
 
   const processImage = async () => {
     if (!uploadedImage) {
       alert("Please upload an image.");
       return;
     }
-
+  
+    setLoading(true);
+    setScenario("");
+    setStory("");
+    setAudioUrl(null);
+  
     try {
-      const response = await fetch("/api/image-to-text", {
+      // Convert image to FormData
+      const formData = new FormData();
+      formData.append("image", uploadedImage);
+  
+      console.log("Uploading image...");
+  
+      // Image to text request
+      const imageResponse = await fetch(`${API_BASE_URL}/api/image-to-text`, { 
+        method: "POST",
+        body: formData
+      });
+  
+      if (!imageResponse.ok) {
+        const errorText = await imageResponse.text();
+        console.error("Image-to-text API Error:", errorText);
+        throw new Error(`Image processing failed: ${errorText}`);
+      }
+  
+      const imageData = await imageResponse.json();
+      console.log("Image-to-text response:", imageData);
+      setScenario(imageData.text);
+  
+      // Generate story
+      const storyResponse = await fetch(`${API_BASE_URL}/api/story-generator`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: uploadedImage })
+        body: JSON.stringify({ scenario: imageData.text, modelChoice }),
       });
-
-      const data = await response.json();
-      setScenario(data.text);
-
-      const storyResponse = await fetch("/api/story-generator", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario: data.text, modelChoice })
-      });
-
+  
+      if (!storyResponse.ok) {
+        const errorText = await storyResponse.text();
+        console.error("Story API Error:", errorText);
+        throw new Error(`Story generation failed: ${errorText}`);
+      }
+  
       const storyData = await storyResponse.json();
+      console.log("Story response:", storyData);
       setStory(storyData.story);
-
-      const audioResponse = await fetch("/api/text-to-speech", {
+  
+      // Generate speech
+      const audioResponse = await fetch(`${API_BASE_URL}/api/text-to-speech`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: storyData.story })
+        body: JSON.stringify({ text: storyData.story }),
       });
-
+  
+      if (!audioResponse.ok) {
+        const errorText = await audioResponse.text();
+        console.error("Text-to-speech API Error:", errorText);
+        throw new Error(`Audio generation failed: ${errorText}`);
+      }
+  
       const audioBlob = await audioResponse.blob();
       setAudioUrl(URL.createObjectURL(audioBlob));
+  
     } catch (error) {
-      console.error("Error processing image:", error);
+      console.error("Error:", error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,8 +120,10 @@ export default function App() {
         <CardContent>
           <h2 className="text-lg font-semibold mb-2">Upload an Image</h2>
           <input type="file" accept="image/*" onChange={handleImageUpload} className="mb-4" />
-          {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="w-full h-auto mb-4" />}
-          <Button onClick={processImage}>Generate Story</Button>
+          {uploadedImage && <img src={URL.createObjectURL(uploadedImage)} alt="Uploaded" className="w-full h-auto mb-4" />}
+          <Button onClick={processImage} disabled={loading}>
+            {loading ? "Processing..." : "Generate Story"}
+          </Button>
         </CardContent>
       </Card>
 
