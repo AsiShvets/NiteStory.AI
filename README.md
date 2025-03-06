@@ -3,7 +3,10 @@ CS687 Capstone project (City University of Seattle) Winter 2025
 
 1. Install all libraries and dependencies
 ```
-pip install -r requirements.txt (backend)
+Cd backend
+```
+```
+pip install -r requirements.txt
 ```
 
 2. Start backend
