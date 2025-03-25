@@ -8,8 +8,13 @@ Cd backend
 ```
 pip install -r requirements.txt
 ```
-
-2. Start backend
+2. Update .env file with your API keys:
+```
+HUGGINGFACEHUB_API_TOKEN=hf_X....
+OPENAI_API_KEY=sk-qz.....
+REACT_APP_API_URL=https://....-8000.app.github.dev
+```
+3. Start backend
 
 ```
 Cd backend
