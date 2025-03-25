@@ -22,7 +22,7 @@ Cd backend
 ```
 uvicorn app.main:app --reload 
 ```
-3. Start frontend:
+4. Start frontend:
 
 ```
 Cd frontend
